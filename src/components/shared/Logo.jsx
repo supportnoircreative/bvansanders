@@ -5,16 +5,16 @@ import siteConfig from "@/config/site";
 
 const VARIANTS = {
   desktop: {
-    width: 47,
-    height: 72,
-    text: "text-[13px]",
+    width: 40,
+    height: 61,
+    text: "text-[12px]",
     gap: "gap-1",
     pad: "py-1.5",
   },
   mobile: {
-    width: 24,
-    height: 37,
-    text: "text-[11.5px]",
+    width: 20,
+    height: 31,
+    text: "text-[10.5px]",
     gap: "gap-0.5",
     pad: "py-0.5",
   },
@@ -45,7 +45,7 @@ export function Logo({ variant = "desktop", className, ...props }) {
         width={width}
         height={height}
         priority={variant === "desktop"}
-        className="block h-auto max-h-[37px] w-auto md:max-h-[72px] flex-shrink-0"
+        className="block h-auto max-h-[31px] w-auto md:max-h-[61px] flex-shrink-0"
       />
       <span
         className={cn(

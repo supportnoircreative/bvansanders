@@ -16,7 +16,7 @@ export function Hero() {
         aria-hidden="true"
         width={200}
         height={280}
-        className="pointer-events-none absolute right-[6%] top-0 z-0 h-[130px] w-auto max-w-[40%] opacity-50 sm:h-[170px] md:h-[240px] lg:h-[340px]"
+        className="pointer-events-none absolute right-[6%] bottom-0 z-0 h-[130px] w-auto max-w-[40%] opacity-50 sm:h-[170px] sm:top-5 md:h-[240px] md:top-8 lg:h-[340px] lg:top-10"
       />
 
       <div className="relative z-10 mx-auto max-w-[1180px]">

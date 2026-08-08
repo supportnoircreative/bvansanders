@@ -9,7 +9,7 @@ export function MiniButton({ disabled, className, ...props }) {
     <Button
       variant="ghost"
       className={cn(
-        "border-[1.5px] px-3.5 py-1.5 text-[11.5px] font-bold disabled:cursor-not-allowed disabled:border-line disabled:text-ink-soft disabled:hover:border-line disabled:hover:bg-transparent disabled:hover:text-ink-soft",
+        "border-[1.5px] px-3.5 py-1.5 text-[11.5px] font-bold max-sm:px-2 max-sm:py-1 max-sm:text-[10.5px] disabled:cursor-not-allowed disabled:border-line disabled:text-ink-soft disabled:hover:border-line disabled:hover:bg-transparent disabled:hover:text-ink-soft",
         className
       )}
       disabled={disabled}
