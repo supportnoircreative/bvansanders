@@ -1,27 +1,78 @@
+import {
+  getCurrentUser,
+  loginWithEmail,
+  loginWithGoogle,
+  logout,
+  registerWithEmail,
+  sendPasswordReset,
+  subscribeToAuthState,
+} from "@/services/firebase/auth";
+import { toFriendlyError } from "@/services/firebase/errors";
+import { UserService } from "./UserService";
+
 /**
- * Authentication service. Backend-ready: swap the mock flows for real
- * API calls without touching the consuming components.
+ * AuthService — the single entry point for all authentication flows.
+ * Components never touch `firebase/auth` directly; they go through this
+ * service (usually via AuthContext/useAuth).
  */
-export const authService = {
-  async login({ email, password }) {
-    return { email, name: null, auth: true };
+export const AuthService = {
+  async register({ name, email, password }) {
+    try {
+      const user = await registerWithEmail(email, password);
+      await UserService.createUserProfile(user.uid, {
+        name: name?.trim() || "",
+        email: user.email || email,
+      });
+      return user;
+    } catch (error) {
+      throw toFriendlyError(error, "We couldn't create your account — please try again.");
+    }
   },
 
-  async register({ name, email, password }) {
-    return { name, email, auth: true };
+  async login({ email, password }) {
+    try {
+      return await loginWithEmail(email, password);
+    } catch (error) {
+      throw toFriendlyError(error, "We couldn't log you in — please try again.");
+    }
+  },
+
+  async loginWithGoogle() {
+    try {
+      const user = await loginWithGoogle();
+      await UserService.ensureUserProfile(user.uid, {
+        name: user.displayName || "",
+        email: user.email || "",
+      });
+      return user;
+    } catch (error) {
+      throw toFriendlyError(error, "Google sign-in failed — please try again.");
+    }
   },
 
   async logout() {
-    return { auth: false };
+    try {
+      await logout();
+    } catch (error) {
+      throw toFriendlyError(error, "We couldn't sign you out.");
+    }
   },
 
-  async forgotPassword({ email }) {
-    return { email, sent: true };
+  async sendPasswordResetEmail(email) {
+    try {
+      await sendPasswordReset(email);
+    } catch (error) {
+      throw toFriendlyError(error, "We couldn't send a reset link — please try again.");
+    }
   },
 
-  async getSession() {
-    return { auth: false };
+  getCurrentUser() {
+    return getCurrentUser();
+  },
+
+  subscribeToAuthState(callback) {
+    return subscribeToAuthState(callback);
   },
 };
 
-export default authService;
+export default AuthService;

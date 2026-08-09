@@ -15,7 +15,7 @@ export function CartButton() {
       badge={
         <span
           className={cn(
-            "absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange px-0.5 font-mono text-[10px] font-semibold leading-none text-white",
+            "absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange px-0.5 font-mono text-[11px] font-semibold leading-none text-white lg:-right-1.5 lg:-top-1.5 lg:h-4 lg:min-w-4 lg:text-[10px]",
             count === 0 && "hidden"
           )}
         >
@@ -23,7 +23,7 @@ export function CartButton() {
         </span>
       }
     >
-      <ShoppingCart size={18} strokeWidth={1.8} />
+      <ShoppingCart className="size-[22px] lg:size-[18px]" strokeWidth={1.8} />
     </IconButton>
   );
 }

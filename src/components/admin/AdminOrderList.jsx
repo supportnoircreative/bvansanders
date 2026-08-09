@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { formatUSD } from "@/utils/format";
 import { StatusBadge } from "./StatusBadge";
-import { ORDER_STATUSES } from "@/constants/admin";
+import { ORDER_STATUSES } from "@/constants/orders";
 import { cn } from "@/lib/cn";
 
 function formatDate(iso) {

@@ -43,7 +43,7 @@ export function CartProvider({ children }) {
         : `${items.length} ${pluralize(
             items.length,
             "item"
-          )}${CART.summary} (prototype)`,
+          )}${CART.summary}`,
     [items]
   );
 

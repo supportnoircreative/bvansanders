@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { LogOut, Package, ReceiptText } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
-import { useAdminAuth, notifyAdminAuthChange } from "@/hooks/useAdminAuth";
-import { adminService } from "@/services";
-import { ADMIN_SESSION_KEY } from "@/constants/admin";
+import { useAuth } from "@/hooks/useAuth";
+import { useProducts } from "@/hooks/useProducts";
+import { useOrders } from "@/hooks/useOrders";
+import { ProductService, OrderService } from "@/services";
 import { cn } from "@/lib/cn";
 import { AdminGate } from "./AdminGate";
 import { ProductForm } from "./ProductForm";
@@ -19,58 +20,65 @@ const TABS = [
 
 export function AdminPanel() {
   const { showToast } = useToast();
-  const authed = useAdminAuth();
+  const { user, loading, isAdmin, logout } = useAuth();
   const [tab, setTab] = useState("products");
-  const [products, setProducts] = useState([]);
-  const [orders, setOrders] = useState([]);
   const [editing, setEditing] = useState(null);
 
-  const refreshProducts = useCallback(async () => {
-    setProducts(await adminService.getProducts());
-  }, []);
+  const {
+    products,
+    loading: productsLoading,
+    error: productsError,
+    refresh: refreshProducts,
+  } = useProducts();
+  const {
+    orders,
+    loading: ordersLoading,
+    error: ordersError,
+    refresh: refreshOrders,
+  } = useOrders();
 
-  const refreshOrders = useCallback(async () => {
-    setOrders(await adminService.getOrders());
-  }, []);
-
-  useEffect(() => {
-    if (!authed) return;
-    let active = true;
-    adminService.getProducts().then((items) => {
-      if (active) setProducts(items);
-    });
-    adminService.getOrders().then((items) => {
-      if (active) setOrders(items);
-    });
-    return () => {
-      active = false;
-    };
-  }, [authed]);
-
-  if (!authed) {
-    return <AdminGate />;
-  }
-
-  const handleSaved = () => {
+  const handleSaved = useCallback(() => {
     setEditing(null);
     refreshProducts();
-  };
+  }, [refreshProducts]);
 
-  const handleDelete = async (id) => {
-    await adminService.deleteProduct(id);
-    showToast("Product deleted (prototype)");
-    refreshProducts();
-  };
+  const handleDelete = useCallback(
+    async (id) => {
+      try {
+        await ProductService.deleteProduct(id);
+        showToast("Product deleted");
+        refreshProducts();
+      } catch (error) {
+        showToast(error.message);
+      }
+    },
+    [refreshProducts, showToast]
+  );
 
-  const handleStatusChange = async (id, status) => {
-    await adminService.updateOrderStatus(id, status);
-    refreshOrders();
-  };
+  const handleStatusChange = useCallback(
+    async (id, status) => {
+      try {
+        await OrderService.updateOrderStatus(id, status);
+        refreshOrders();
+      } catch (error) {
+        showToast(error.message);
+      }
+    },
+    [refreshOrders, showToast]
+  );
 
-  const handleLogout = () => {
-    window.sessionStorage.removeItem(ADMIN_SESSION_KEY);
-    notifyAdminAuthChange();
-  };
+  if (loading) {
+    return (
+      <div className="grid h-64 gap-8 lg:grid-cols-[400px_minmax(0,1fr)]">
+        <div className="animate-pulse rounded-[10px] bg-chalk" aria-hidden="true" />
+        <div className="animate-pulse rounded-[10px] bg-chalk" aria-hidden="true" />
+      </div>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return <AdminGate />;
+  }
 
   return (
     <div>
@@ -98,15 +106,38 @@ export function AdminPanel() {
           ))}
         </div>
 
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="flex cursor-pointer items-center gap-1.5 rounded-full border border-line px-3.5 py-1.5 text-[12px] font-semibold text-ink-soft transition-colors duration-150 hover:border-inked hover:text-inked"
-        >
-          <LogOut size={13} strokeWidth={2} />
-          Log out
-        </button>
+        <div className="flex items-center gap-3">
+          <span className="hidden max-w-[220px] truncate font-mono text-[11.5px] text-ink-soft sm:block">
+            {user.email}
+          </span>
+          <button
+            type="button"
+            onClick={logout}
+            className="flex cursor-pointer items-center gap-1.5 rounded-full border border-line px-3.5 py-1.5 text-[12px] font-semibold text-ink-soft transition-colors duration-150 hover:border-inked hover:text-inked"
+          >
+            <LogOut size={13} strokeWidth={2} />
+            Log out
+          </button>
+        </div>
       </div>
+
+      {(productsLoading || ordersLoading) && (
+        <p className="font-mono mb-4 text-[11px] uppercase tracking-[0.15em] text-ink-soft">
+          Loading…
+        </p>
+      )}
+
+      {productsError && tab === "products" && (
+        <p className="mb-4 rounded-[10px] border border-dashed border-line bg-surface px-4 py-3 text-[13px] text-orange">
+          {productsError.message}
+        </p>
+      )}
+
+      {ordersError && tab === "orders" && (
+        <p className="mb-4 rounded-[10px] border border-dashed border-line bg-surface px-4 py-3 text-[13px] text-orange">
+          {ordersError.message}
+        </p>
+      )}
 
       {tab === "products" ? (
         <div className="grid items-start gap-8 lg:grid-cols-[400px_minmax(0,1fr)] lg:gap-10">

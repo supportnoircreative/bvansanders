@@ -1,32 +1,29 @@
 import { api } from "./api";
-import { authService } from "./authService";
-import { productService } from "./productService";
-import { orderService } from "./orderService";
-import { userService } from "./userService";
-import { newsletterService } from "./newsletterService";
 import { contactService } from "./contactService";
-import { adminService } from "./adminService";
+import { newsletterService } from "./newsletterService";
+import { AuthService } from "./AuthService";
+import { UserService } from "./UserService";
+import { ProductService } from "./ProductService";
+import { OrderService } from "./OrderService";
 
 export {
   api,
-  authService,
-  productService,
-  orderService,
-  userService,
-  newsletterService,
   contactService,
-  adminService,
+  newsletterService,
+  AuthService,
+  UserService,
+  ProductService,
+  OrderService,
 };
 
 const services = {
   api,
-  authService,
-  productService,
-  orderService,
-  userService,
-  newsletterService,
   contactService,
-  adminService,
+  newsletterService,
+  AuthService,
+  UserService,
+  ProductService,
+  OrderService,
 };
 
 export default services;

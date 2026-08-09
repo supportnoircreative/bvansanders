@@ -1,18 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/buttons";
 import { Field } from "@/components/forms/Field";
 import { INPUT_CLASSES } from "@/components/forms/fieldClasses";
 import { useToast } from "@/hooks/useToast";
-import { adminService } from "@/services";
+import { ProductService } from "@/services";
 import { formatSize } from "@/utils/format";
 import {
   ADMIN_CATEGORIES,
   ADMIN_TAGS,
   SIZE_UNITS,
 } from "@/constants/admin";
+import { MEDIUM_BY_KIND, EDITION_BY_KIND } from "@/constants/products";
 
 const EMPTY_FORM = {
   title: "",
@@ -25,6 +26,8 @@ const EMPTY_FORM = {
   sizeUnit: "in",
   featured: false,
   description: "",
+  medium: "",
+  edition: "",
   image: "",
 };
 
@@ -55,6 +58,8 @@ function initialForm(editing) {
     sizeUnit: editing.sizeUnit ?? "in",
     featured: Boolean(editing.featured),
     description: editing.description ?? "",
+    medium: editing.medium ?? "",
+    edition: editing.edition ?? "",
     image: editing.image ?? "",
   };
 }
@@ -63,6 +68,9 @@ export function ProductForm({ editing = null, onSaved, onCancelEdit }) {
   const { showToast } = useToast();
   const [form, setForm] = useState(() => initialForm(editing));
   const [submitting, setSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const fileInputRef = useRef(null);
 
   const handleChange = ({ target }) => {
     setForm((current) => ({ ...current, [target.name]: target.value }));
@@ -71,11 +79,15 @@ export function ProductForm({ editing = null, onSaved, onCancelEdit }) {
   const handleImageChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setForm((current) => ({ ...current, image: reader.result }));
-    };
-    reader.readAsDataURL(file);
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleRemoveImage = () => {
+    setForm((current) => ({ ...current, image: "" }));
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleSubmit = async (event) => {
@@ -86,8 +98,14 @@ export function ProductForm({ editing = null, onSaved, onCancelEdit }) {
       const meta = CATEGORY_META[form.category] ?? CATEGORY_META.print;
       const tag =
         form.tag === "custom" ? form.customTag.trim() : form.tag;
+
+      let image = form.image;
+      if (imageFile) {
+        const uploaded = await ProductService.uploadProductImage(imageFile);
+        image = uploaded.url;
+      }
+
       const product = {
-        id: editing ? editing.id : `admin-${Date.now()}`,
         title: form.title.trim(),
         category: form.category,
         kind: meta.kind,
@@ -96,18 +114,38 @@ export function ProductForm({ editing = null, onSaved, onCancelEdit }) {
         sold: tag === "soldout",
         featured: Boolean(form.featured),
         description: form.description.trim(),
-        image: form.image,
+        medium: form.medium.trim(),
+        edition: form.edition.trim(),
+        image,
         price: Number(form.price),
         width: Number(form.width),
         height: Number(form.height),
         sizeUnit: form.sizeUnit,
         size,
         dimensions: size,
-        createdAt: editing?.createdAt ?? new Date().toISOString(),
       };
-      await adminService.saveProduct(product);
-      showToast(`${product.title} saved (prototype)`);
-      onSaved(product);
+
+      const saved = editing
+        ? await ProductService.updateProduct(editing.id, product)
+        : await ProductService.createProduct(product);
+
+      // Clean up a replaced/removed image from storage.
+      if (
+        editing?.image &&
+        editing.image !== saved.image &&
+        !editing.image.startsWith("data:")
+      ) {
+        try {
+          await ProductService.deleteProductImage(editing.image);
+        } catch (error) {
+          console.warn("Failed to remove old product image:", error?.message);
+        }
+      }
+
+      showToast(`${saved.title} saved`);
+      onSaved(saved);
+    } catch (error) {
+      showToast(error.message);
     } finally {
       setSubmitting(false);
     }
@@ -261,6 +299,38 @@ export function ProductForm({ editing = null, onSaved, onCancelEdit }) {
         </p>
       </Field>
 
+      <div className="grid gap-x-5 sm:grid-cols-2">
+        <Field label="Medium" htmlFor="admin-medium">
+          <input
+            id="admin-medium"
+            name="medium"
+            type="text"
+            maxLength={60}
+            placeholder={`e.g. ${MEDIUM_BY_KIND.print}`}
+            className={INPUT_CLASSES}
+            value={form.medium}
+            onChange={handleChange}
+          />
+        </Field>
+
+        <Field label="Edition" htmlFor="admin-edition">
+          <input
+            id="admin-edition"
+            name="edition"
+            type="text"
+            maxLength={60}
+            placeholder={`e.g. ${EDITION_BY_KIND.print}`}
+            className={INPUT_CLASSES}
+            value={form.edition}
+            onChange={handleChange}
+          />
+        </Field>
+      </div>
+      <p className="-mt-2 mb-5 text-[11px] text-ink-soft">
+        Shown on the product page. Leave blank to use the default for the
+        category.
+      </p>
+
       <Field label="Description" htmlFor="admin-description">
         <textarea
           id="admin-description"
@@ -276,20 +346,18 @@ export function ProductForm({ editing = null, onSaved, onCancelEdit }) {
         <span className="mb-2 block text-[11.5px] font-extrabold uppercase tracking-wider text-ink-soft">
           Image
         </span>
-        {form.image ? (
+        {imagePreview || form.image ? (
           <div className="relative inline-block">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={form.image}
+              src={imagePreview ?? form.image}
               alt="Product preview"
               className="h-28 w-28 rounded-[6px] border border-line object-cover"
             />
             <button
               type="button"
               aria-label="Remove image"
-              onClick={() =>
-                setForm((current) => ({ ...current, image: "" }))
-              }
+              onClick={handleRemoveImage}
               className="absolute -right-2 -top-2 flex size-6 cursor-pointer items-center justify-center rounded-full bg-inked text-bg transition-transform hover:scale-110"
             >
               <X size={12} strokeWidth={2.5} />
@@ -302,9 +370,10 @@ export function ProductForm({ editing = null, onSaved, onCancelEdit }) {
               Upload an image
             </span>
             <span className="text-[11px] text-ink-soft">
-              PNG or JPG, stored locally (prototype)
+              PNG or JPG — uploaded to Firebase Storage
             </span>
             <input
+              ref={fileInputRef}
               type="file"
               accept="image/*"
               className="sr-only"

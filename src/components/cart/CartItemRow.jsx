@@ -12,9 +12,18 @@ export function CartItemRow({ item, index = 0, readOnly = false }) {
     <li className="flex items-center gap-3.5 rounded-lg border border-line bg-surface p-3">
       <span
         aria-hidden="true"
-        className="size-14 shrink-0 rounded-[4px] border border-line"
+        className="relative size-14 shrink-0 overflow-hidden rounded-[4px] border border-line"
         style={{ background: getArtGradient(index) }}
-      />
+      >
+        {item.image && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={item.image}
+            alt=""
+            className="absolute inset-0 h-full w-full object-contain"
+          />
+        )}
+      </span>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-bold">{item.title}</p>
         <p className="truncate font-mono text-[11.5px] text-ink-soft">

@@ -115,7 +115,7 @@ export function CartDrawer() {
                   <span className="font-semibold">{formatUSD(subtotal)}</span>
                 </div>
                 <p className="mb-4 text-xs text-ink-soft">
-                  Shipping calculated at checkout (prototype).
+                  Shipping calculated at checkout.
                 </p>
                 <Button className="w-full" onClick={handleCheckout}>
                   Checkout

@@ -6,9 +6,9 @@ export function AccountButton() {
     <Link
       href="/login"
       aria-label="Account"
-      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-line text-inked transition-all duration-150 hover:border-inked hover:bg-chalk focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange"
+      className="flex size-11 shrink-0 items-center justify-center rounded-full border border-line text-inked transition-all duration-150 hover:border-inked hover:bg-chalk focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange lg:size-9"
     >
-      <User size={18} strokeWidth={1.8} />
+      <User className="size-[22px] lg:size-[18px]" strokeWidth={1.8} />
     </Link>
   );
 }

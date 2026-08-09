@@ -1,74 +1,129 @@
-import { adminService } from "./adminService";
-
-function mock(resolveValue, ms = 120) {
-  return new Promise((resolve) =>
-    setTimeout(() => resolve(resolveValue), ms)
-  );
-}
+import {
+  productsCollection,
+  productRef,
+  getDocuments,
+  getDocument,
+  createDocument,
+  updateDocument,
+  deleteDocument,
+  sortByNewest,
+} from "@/services/firebase/firestore";
+import { toFriendlyError, logError } from "@/services/firebase/errors";
+import { uploadProductImage, deleteProductImage } from "@/services/firebase/storage";
 
 /**
- * Catalog access. All reads go through the unified mock store
- * (adminService), so admin edits/additions/deletions are reflected on the
- * frontend immediately. Until a backend is connected these resolve from
- * local fixtures + overrides and simulate latency so components can be
- * swapped to real endpoints without changing signatures.
+ * ProductService — all product reads/writes for the storefront and the
+ * admin panel. Low-level Storage/Firestore logic stays in
+ * services/firebase/*; components stay in hooks.
  */
-export const productService = {
-  async getAll() {
-    return mock(adminService.getEffectiveProducts());
+export const ProductService = {
+  async createProduct(productData) {
+    try {
+      const product = await createDocument(productsCollection, {
+        ...productData,
+        isActive: true,
+      });
+      return ProductService.getProduct(product.id);
+    } catch (error) {
+      logError("ProductService.createProduct", error);
+      throw toFriendlyError(error, "We couldn't add the product.");
+    }
   },
 
-  async getOriginals() {
-    return mock(
-      adminService.getEffectiveProducts().filter((product) => product.kind === "original")
-    );
+  async getProduct(productId) {
+    try {
+      return await getDocument(productRef(productId));
+    } catch (error) {
+      logError("ProductService.getProduct", error);
+      throw toFriendlyError(error, "We couldn't load that product.");
+    }
   },
 
-  async getPrints() {
-    return mock(
-      adminService.getEffectiveProducts().filter((product) => product.kind === "print")
-    );
+  async getProducts() {
+    try {
+      return await getDocuments(productsCollection, {
+        orderByField: "createdAt",
+        direction: "desc",
+      });
+    } catch (error) {
+      logError("ProductService.getProducts", error);
+      throw toFriendlyError(error, "We couldn't load the catalog.");
+    }
   },
 
-  async getByKind(kind) {
-    return mock(
-      adminService.getEffectiveProducts().filter((product) => product.kind === kind)
-    );
+  async updateProduct(productId, productData) {
+    try {
+      return await updateDocument(productRef(productId), productData);
+    } catch (error) {
+      logError("ProductService.updateProduct", error);
+      throw toFriendlyError(error, "We couldn't save the product.");
+    }
   },
 
-  async getFeatured() {
-    return mock(adminService.getEffectiveFeatured());
+  async deleteProduct(productId) {
+    try {
+      const product = await this.getProduct(productId);
+      if (product?.image) {
+        try {
+          await deleteProductImage(product.image);
+        } catch (error) {
+          logError("ProductService.deleteProduct.image", error);
+        }
+      }
+      await deleteDocument(productRef(productId));
+    } catch (error) {
+      logError("ProductService.deleteProduct", error);
+      throw toFriendlyError(error, "We couldn't delete the product.");
+    }
   },
 
-  async getById(id) {
-    const found = adminService
-      .getEffectiveProducts()
-      .find((product) => product.id === id);
-    return mock(found ?? null);
+  async getFeaturedProducts() {
+    try {
+      return await getDocuments(productsCollection, {
+        whereField: "featured",
+        whereValue: true,
+      });
+    } catch (error) {
+      logError("ProductService.getFeaturedProducts", error);
+      throw toFriendlyError(error, "We couldn't load featured pieces.");
+    }
   },
 
-  async search(query) {
-    const needle = query.trim().toLowerCase();
-    const results = needle
-      ? adminService
-          .getEffectiveProducts()
-          .filter((product) => product.title.toLowerCase().includes(needle))
-      : adminService.getEffectiveProducts();
-    return mock(results);
+  async getProductsByCategory(category) {
+    if (!category) return [];
+    try {
+      const products = await getDocuments(productsCollection, {
+        whereField: "kind",
+        whereValue: category,
+      });
+      return sortByNewest(products);
+    } catch (error) {
+      logError("ProductService.getProductsByCategory", error);
+      throw toFriendlyError(error, "We couldn't load that category.");
+    }
   },
 
-  async filter({ sold, kind } = {}) {
-    const results = adminService.getEffectiveProducts().filter((product) => {
-      if (sold !== undefined && product.sold !== sold) return false;
-      if (kind && product.kind !== kind) return false;
-      return true;
-    });
-    return mock(results);
+  async searchProducts(query) {
+    try {
+      const all = await this.getProducts();
+      const needle = (query || "").trim().toLowerCase();
+      if (!needle) return all;
+      return all.filter((product) =>
+        product.title?.toLowerCase().includes(needle)
+      );
+    } catch (error) {
+      logError("ProductService.searchProducts", error);
+      throw toFriendlyError(error, "We couldn't search the catalog.");
+    }
   },
 
-  async getAvailable() {
-    return this.filter({ sold: false });
+  uploadProductImage(file) {
+    return uploadProductImage(file);
+  },
+
+  deleteProductImage(pathOrUrl) {
+    return deleteProductImage(pathOrUrl);
   },
 };
 
-export default productService;
+export default ProductService;

@@ -1,6 +1,7 @@
 import { Archivo_Black, IBM_Plex_Mono, Inter, Geist } from "next/font/google";
 import { CartProvider } from "@/context/CartContext";
 import { ToastProvider } from "@/context/ToastContext";
+import { AuthProvider } from "@/context/AuthContext";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { CartDrawer } from "@/components/cart/CartDrawer";
@@ -64,14 +65,16 @@ export default function RootLayout({ children }) {
       className={cn("h-full", inter.variable, archivoBlack.variable, plexMono.variable, "font-sans", geist.variable)}
     >
       <body className="flex min-h-screen flex-col">
-        <CartProvider>
-          <ToastProvider>
-            <Navbar />
-            <CartDrawer />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </ToastProvider>
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <ToastProvider>
+              <Navbar />
+              <CartDrawer />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </ToastProvider>
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

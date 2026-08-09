@@ -5,32 +5,35 @@ import { useCart } from "@/hooks/useCart";
 import { useToast } from "@/hooks/useToast";
 import { Button, MiniButton } from "@/components/buttons";
 
+const INQUIRY_HREF = "/contact";
+
 /**
- * Primary action on a product card. Sold items are disabled.
- * Prints add to cart; originals open an inquiry. `size="lg"` renders a
- * large primary CTA for the product detail page. Backend-ready
- * order/cart flows hook in here via the cart context.
+ * Whether a product asks customers to inquire rather than add to cart:
+ * processing or sold-out pieces (or legacy sold flags).
+ */
+function shouldInquire(product) {
+  return (
+    product.sold ||
+    product.tag === "processing" ||
+    product.tag === "soldout"
+  );
+}
+
+/**
+ * Primary action on a product card. Processing/sold-out pieces show an
+ * "Inquire" link to the contact page; everything else adds to cart.
+ * `size="lg"` renders a large primary CTA for the product detail page.
  */
 export function ProductActions({ product, size = "md" }) {
   const { addItem } = useCart();
   const { showToast } = useToast();
 
-  if (product.sold) {
-    if (size === "lg") {
-      return (
-        <Button
-          type="button"
-          disabled
-          className="disabled:cursor-not-allowed disabled:border-line disabled:bg-transparent disabled:text-ink-soft disabled:hover:border-line disabled:hover:bg-transparent disabled:hover:text-ink-soft"
-        >
-          Sold Out
-        </Button>
-      );
-    }
-    return (
-      <MiniButton type="button" disabled>
-        Sold Out
-      </MiniButton>
+  if (shouldInquire(product)) {
+    const label = "Inquire";
+    return size === "lg" ? (
+      <Button href={INQUIRY_HREF}>{label}</Button>
+    ) : (
+      <MiniButton href={INQUIRY_HREF}>{label}</MiniButton>
     );
   }
 
@@ -39,19 +42,17 @@ export function ProductActions({ product, size = "md" }) {
     showToast(`${product.title}${CART.added}`);
   };
 
-  const label = product.kind === "print" ? "Add to Cart" : "Inquire";
-
   if (size === "lg") {
     return (
       <Button type="button" onClick={handleAction}>
-        {label}
+        Add to Cart
       </Button>
     );
   }
 
   return (
     <MiniButton type="button" onClick={handleAction}>
-      {label}
+      Add to Cart
     </MiniButton>
   );
 }

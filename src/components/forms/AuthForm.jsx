@@ -1,21 +1,40 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/buttons";
 import { Field } from "./Field";
 import { INPUT_CLASSES } from "./fieldClasses";
-import { authService } from "@/services";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
-import { AUTH_MESSAGES } from "@/constants/navigation";
+import { AUTH_MESSAGES, ACCOUNT_MESSAGES } from "@/constants/navigation";
 import { cn } from "@/lib/cn";
 
 const INITIAL_VALUES = { name: "", email: "", password: "", confirm: "" };
 
+function SignOutButton({ onLogout }) {
+  return (
+    <Button type="button" variant="ghost" className="w-full" onClick={onLogout}>
+      <LogOut size={16} strokeWidth={2} />
+      {ACCOUNT_MESSAGES.logout}
+    </Button>
+  );
+}
+
 export function AuthForm() {
+  const {
+    user,
+    loading,
+    login,
+    register,
+    loginWithGoogle,
+    logout,
+  } = useAuth();
+  const { showToast } = useToast();
   const [mode, setMode] = useState("login");
   const [values, setValues] = useState(INITIAL_VALUES);
   const [submitting, setSubmitting] = useState(false);
-  const { showToast } = useToast();
 
   const isSignup = mode === "signup";
   const copy = AUTH_MESSAGES[mode];
@@ -38,16 +57,46 @@ export function AuthForm() {
     setSubmitting(true);
     try {
       if (isSignup) {
-        await authService.register(values);
+        await register(values);
       } else {
-        await authService.login(values);
+        await login(values);
       }
       showToast(copy.success);
       setValues(INITIAL_VALUES);
+    } catch (error) {
+      showToast(error.message);
     } finally {
       setSubmitting(false);
     }
   };
+
+  const handleGoogle = async () => {
+    setSubmitting(true);
+    try {
+      await loginWithGoogle();
+      showToast(copy.success);
+    } catch (error) {
+      showToast(error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="h-[60vh]" aria-hidden="true" />;
+  }
+
+  if (user) {
+    return (
+      <div className="w-full max-w-[420px] rounded-[10px] border border-line bg-surface px-5 py-8 text-center sm:px-10">
+        <h2 className="font-display mb-2 text-[26px] uppercase leading-none">
+          {ACCOUNT_MESSAGES.signedIn}
+        </h2>
+        <p className="mb-6 break-all text-sm text-ink-soft">{user.email}</p>
+        <SignOutButton onLogout={logout} />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-[420px] rounded-[10px] border border-line bg-surface px-5 py-7 sm:px-10 sm:py-10">
@@ -134,10 +183,39 @@ export function AuthForm() {
           </Field>
         )}
 
+        {!isSignup && (
+          <p className="mb-4 -mt-1 text-right">
+            <Link
+              href="/forgot-password"
+              className="text-[12.5px] font-semibold text-orange hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </p>
+        )}
+
         <Button type="submit" className="w-full" disabled={submitting}>
           {submitting ? "Please wait..." : copy.submit}
         </Button>
       </form>
+
+      <div className="my-5 flex items-center gap-3">
+        <span className="h-px flex-1 bg-line" aria-hidden="true" />
+        <span className="font-mono text-[10.5px] uppercase tracking-[0.15em] text-ink-soft">
+          or
+        </span>
+        <span className="h-px flex-1 bg-line" aria-hidden="true" />
+      </div>
+
+      <Button
+        type="button"
+        variant="ghost"
+        className="w-full"
+        disabled={submitting}
+        onClick={handleGoogle}
+      >
+        Continue with Google
+      </Button>
 
       <p className="mt-4 text-center text-[13.5px] text-ink-soft">
         {isSignup

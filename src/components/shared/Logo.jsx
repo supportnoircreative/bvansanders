@@ -10,22 +10,25 @@ const VARIANTS = {
     text: "text-[12px]",
     gap: "gap-1",
     pad: "py-1.5",
+    imgClass: "md:max-h-[61px]",
   },
   mobile: {
-    width: 20,
-    height: 31,
-    text: "text-[10.5px]",
-    gap: "gap-0.5",
-    pad: "py-0.5",
+    width: 40,
+    height: 61,
+    text: "text-[13px]",
+    gap: "gap-1",
+    pad: "py-1",
+    imgClass: "max-h-[52px] sm:max-h-[61px]",
   },
 };
 
 /**
  * Brand lockup: logo mark + wordmark, linked to the home page.
- * "desktop" is the primary (left) lockup; "mobile" is the centered variant.
+ * "desktop" is the primary (left) lockup; "mobile" is the centered variant,
+ * drawn larger to fill the taller mobile header.
  */
 export function Logo({ variant = "desktop", className, ...props }) {
-  const { width, height, text, gap, pad } = VARIANTS[variant];
+  const { width, height, text, gap, pad, imgClass } = VARIANTS[variant];
 
   return (
     <Link
@@ -45,7 +48,7 @@ export function Logo({ variant = "desktop", className, ...props }) {
         width={width}
         height={height}
         priority={variant === "desktop"}
-        className="block h-auto max-h-[31px] w-auto md:max-h-[61px] flex-shrink-0"
+        className={cn("block h-auto w-auto flex-shrink-0", imgClass)}
       />
       <span
         className={cn(

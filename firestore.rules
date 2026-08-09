@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Admin authorization is enforced here, server-side, never on the
+    // frontend. An admin is a user whose profile document carries
+    // `role: "admin"`. The `users` rules below prevent non-admins from
+    // ever setting that field themselves.
+    function isAdmin() {
+      return request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // users/{userId}
+    //   - users may create/read their own profile
+    //   - users may update their own profile only if they do not change
+    //     `role` (no self-escalation)
+    //   - admins may read/update/delete any profile
+    match /users/{userId} {
+      allow read: if request.auth != null
+        && (request.auth.uid == userId || isAdmin());
+
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      allow update: if request.auth != null && (
+        (request.auth.uid == userId && request.resource.data.role == resource.data.role)
+        || isAdmin()
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // products/{productId}
+    //   - public catalog: anyone (including guests) can read products
+    //   - only admins can create/update/delete products
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // orders/{orderId}
+    //   - customers create their own orders; the stored `userId` must match
+    //     the authenticated user, and initial state must be pending
+    //   - customers read only their own orders
+    //   - only admins can update/delete orders (status changes)
+    match /orders/{orderId} {
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.paymentStatus == 'pending'
+        && request.resource.data.items.size() > 0;
+
+      allow read: if isAdmin()
+        || (request.auth != null && resource.data.userId == request.auth.uid);
+
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+  }
+}

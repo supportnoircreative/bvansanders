@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Check } from "lucide-react";
 import { Button } from "@/components/buttons";
 import { Field } from "@/components/forms/Field";
 import { INPUT_CLASSES } from "@/components/forms/fieldClasses";
 import { useCart } from "@/hooks/useCart";
 import { useToast } from "@/hooks/useToast";
-import { adminService, orderService } from "@/services";
-import { CHECKOUT } from "@/constants/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { OrderService } from "@/services";
+import { CHECKOUT, ACCOUNT_MESSAGES } from "@/constants/navigation";
 import { formatUSD } from "@/utils/format";
 import { OrderSummary } from "./OrderSummary";
 
@@ -29,6 +29,7 @@ const INITIAL_VALUES = {
 export function CheckoutForm() {
   const { items, clearCart } = useCart();
   const { showToast } = useToast();
+  const { user, loading: authLoading } = useAuth();
   const [values, setValues] = useState(INITIAL_VALUES);
   const [submitting, setSubmitting] = useState(false);
   const [placedOrder, setPlacedOrder] = useState(null);
@@ -44,7 +45,7 @@ export function CheckoutForm() {
     if (items.length === 0) return;
     setSubmitting(true);
     try {
-      const order = await orderService.createOrder({
+      const order = await OrderService.createOrder({
         items,
         customer: {
           name: values.fullName,
@@ -54,11 +55,13 @@ export function CheckoutForm() {
           state: values.state,
           zip: values.zip,
         },
+        userId: user.uid,
       });
-      await adminService.saveOrder({ ...order, items, subtotal, total: subtotal });
       setPlacedOrder(order);
       clearCart();
       showToast(CHECKOUT.success, 2600);
+    } catch (error) {
+      showToast(error.message);
     } finally {
       setSubmitting(false);
     }
@@ -101,6 +104,23 @@ export function CheckoutForm() {
               {CHECKOUT.emptyNote}
             </p>
             <Button href="/originals">Browse originals</Button>
+          </div>
+        ) : authLoading ? (
+          <div className="h-[60vh]" aria-hidden="true" />
+        ) : !user ? (
+          <div className="rounded-[10px] border border-line bg-surface px-6 py-12 text-center">
+            <p className="font-display mb-2 text-2xl uppercase">
+              {ACCOUNT_MESSAGES.loginPrompt}
+            </p>
+            <p className="mx-auto mb-6 max-w-[38ch] text-sm text-ink-soft">
+              {ACCOUNT_MESSAGES.loginPromptNote}
+            </p>
+            <div className="flex flex-wrap justify-center gap-3.5">
+              <Button href="/login">Log in or sign up</Button>
+              <Button href="/originals" variant="ghost">
+                Keep browsing
+              </Button>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} aria-label="Checkout">

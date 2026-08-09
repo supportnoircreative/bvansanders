@@ -4,6 +4,7 @@ import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { formatUSD } from "@/utils/format";
+import { defaultMedium, defaultEdition } from "@/constants/products";
 import {
   ProductArtwork,
   ProductPrice,
@@ -15,10 +16,8 @@ export function ProductDetail({ product, index = 0, related = [] }) {
   const collectionHref = product.kind === "print" ? "/prints" : "/originals";
   const collectionLabel =
     product.kind === "print" ? "Prints" : "Original Paintings";
-  const medium =
-    product.kind === "print" ? "Giclée on cotton paper" : "Acrylic on canvas";
-  const edition =
-    product.kind === "print" ? "Signed & numbered" : "One of one";
+  const medium = product.medium?.trim() || defaultMedium(product.kind);
+  const edition = product.edition?.trim() || defaultEdition(product.kind);
   const availability = product.sold ? "Sold" : "Available";
 
   return (

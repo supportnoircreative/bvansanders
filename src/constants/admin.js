@@ -1,6 +1,3 @@
-export const ADMIN_PASSCODE = "admin123";
-export const ADMIN_SESSION_KEY = "bvs-admin-session";
-
 export const ADMIN_CATEGORIES = [
   { value: "print", label: "Print" },
   { value: "gallery", label: "Gallery" },
@@ -18,11 +15,4 @@ export const SIZE_UNITS = [
   { value: "in", label: "Inches (in)" },
   { value: "cm", label: "Centimeters (cm)" },
   { value: "ft", label: "Feet (ft)" },
-];
-
-export const ORDER_STATUSES = [
-  { value: "pending", label: "Pending" },
-  { value: "processing", label: "Processing" },
-  { value: "shipped", label: "Shipped" },
-  { value: "completed", label: "Completed" },
 ];
