@@ -8,7 +8,7 @@ import {
   subscribeToAuthState,
 } from "@/services/firebase/auth";
 import { toFriendlyError } from "@/services/firebase/errors";
-import { UserService } from "./UserService";
+import { UserService } from "./userService";
 
 /**
  * AuthService — the single entry point for all authentication flows.

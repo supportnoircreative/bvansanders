@@ -1,9 +1,9 @@
 import  api  from "./api";
 import  contactService  from "./contactService";
-import  AuthService  from "./AuthService";
-import UserService from "./UserService";
-import  ProductService  from "./ProductService";
-import  OrderService  from "./OrderService";
+import  AuthService  from "./authService";
+import UserService from "./userService";
+import  ProductService  from "./productService";
+import  OrderService  from "./orderService";
 
 export {
   api,
