@@ -3,14 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
+import { useAuth } from "@/hooks/useAuth";
 import NAV_LINKS from "@/constants/navigation";
 
 export function NavLinks({ className, linkClassName, onNavigate }) {
   const pathname = usePathname();
+  const { isAdmin } = useAuth();
+  const links = NAV_LINKS.filter(({ href }) => href !== "/admin" || isAdmin);
 
   return (
     <nav aria-label="Primary" className={className}>
-      {NAV_LINKS.map(({ href, label }) => {
+      {links.map(({ href, label }) => {
         const isActive = pathname === href;
         return (
           <Link

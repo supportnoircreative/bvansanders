@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pencil, Star, Trash2 } from "lucide-react";
 import { getArtGradient } from "@/utils/artwork";
 import { formatUSD } from "@/utils/format";
+import { Spinner } from "@/components/loaders/Spinner";
 import { StatusBadge } from "./StatusBadge";
 import { ADMIN_CATEGORIES } from "@/constants/admin";
 
@@ -17,8 +18,16 @@ function sizeLabel(product) {
   return "—";
 }
 
-export function AdminProductList({ products, onEdit, onDelete }) {
+export function AdminProductList({ products, loading, onEdit, onDelete }) {
   const [confirmingId, setConfirmingId] = useState(null);
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center rounded-[10px] border border-dashed border-line bg-surface">
+        <Spinner size={28} color="var(--color-inked)" />
+      </div>
+    );
+  }
 
   if (products.length === 0) {
     return (

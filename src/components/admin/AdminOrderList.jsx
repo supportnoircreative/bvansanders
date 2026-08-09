@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { formatUSD } from "@/utils/format";
+import { Spinner } from "@/components/loaders/Spinner";
 import { StatusBadge } from "./StatusBadge";
 import { ORDER_STATUSES } from "@/constants/orders";
 import { cn } from "@/lib/cn";
@@ -18,8 +19,16 @@ function formatDate(iso) {
   });
 }
 
-export function AdminOrderList({ orders, onStatusChange }) {
+export function AdminOrderList({ orders, loading, onStatusChange }) {
   const [expandedId, setExpandedId] = useState(null);
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center rounded-[10px] border border-dashed border-line bg-surface">
+        <Spinner size={28} color="var(--color-inked)" />
+      </div>
+    );
+  }
 
   if (orders.length === 0) {
     return (

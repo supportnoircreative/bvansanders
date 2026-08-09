@@ -121,12 +121,6 @@ export function AdminPanel() {
         </div>
       </div>
 
-      {(productsLoading || ordersLoading) && (
-        <p className="font-mono mb-4 text-[11px] uppercase tracking-[0.15em] text-ink-soft">
-          Loading…
-        </p>
-      )}
-
       {productsError && tab === "products" && (
         <p className="mb-4 rounded-[10px] border border-dashed border-line bg-surface px-4 py-3 text-[13px] text-orange">
           {productsError.message}
@@ -151,12 +145,17 @@ export function AdminPanel() {
           </div>
           <AdminProductList
             products={products}
+            loading={productsLoading}
             onEdit={setEditing}
             onDelete={handleDelete}
           />
         </div>
       ) : (
-        <AdminOrderList orders={orders} onStatusChange={handleStatusChange} />
+        <AdminOrderList
+          orders={orders}
+          loading={ordersLoading}
+          onStatusChange={handleStatusChange}
+        />
       )}
     </div>
   );
