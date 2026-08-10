@@ -12,4 +12,5 @@ export const ORDER_STATUSES = Object.values(ORDER_STATUS).map((value) => ({
 
 export const PAYMENT_STATUS = {
   PENDING: "pending",
+  PAID: "paid",
 };

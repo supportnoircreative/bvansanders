@@ -1,14 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Check } from "lucide-react";
 import { Button } from "@/components/buttons";
 import { Field } from "@/components/forms/Field";
 import { INPUT_CLASSES } from "@/components/forms/fieldClasses";
 import { useCart } from "@/hooks/useCart";
 import { useToast } from "@/hooks/useToast";
 import { useAuth } from "@/hooks/useAuth";
-import { OrderService } from "@/services";
+import { OrderService, StripeService } from "@/services";
 import { CHECKOUT, ACCOUNT_MESSAGES } from "@/constants/navigation";
 import { formatUSD } from "@/utils/format";
 import { OrderSummary } from "./OrderSummary";
@@ -20,19 +19,14 @@ const INITIAL_VALUES = {
   city: "",
   state: "",
   zip: "",
-  cardName: "",
-  cardNumber: "",
-  expiry: "",
-  cvc: "",
 };
 
 export function CheckoutForm() {
-  const { items, clearCart } = useCart();
+  const { items } = useCart();
   const { showToast } = useToast();
   const { user, loading: authLoading } = useAuth();
   const [values, setValues] = useState(INITIAL_VALUES);
   const [submitting, setSubmitting] = useState(false);
-  const [placedOrder, setPlacedOrder] = useState(null);
 
   const subtotal = items.reduce((sum, item) => sum + item.price, 0);
 
@@ -45,52 +39,27 @@ export function CheckoutForm() {
     if (items.length === 0) return;
     setSubmitting(true);
     try {
-      const order = await OrderService.createOrder({
+      const customer = {
+        name: values.fullName,
+        email: values.email,
+        address: values.address,
+        city: values.city,
+        state: values.state,
+        zip: values.zip,
+      };
+      const order = await OrderService.createOrder({ items, customer, userId: user.uid });
+      const session = await StripeService.createCheckoutSession({
+        orderId: order.id,
         items,
-        customer: {
-          name: values.fullName,
-          email: values.email,
-          address: values.address,
-          city: values.city,
-          state: values.state,
-          zip: values.zip,
-        },
+        customer,
         userId: user.uid,
       });
-      setPlacedOrder(order);
-      clearCart();
-      showToast(CHECKOUT.success, 2600);
+      window.location.assign(session.url);
     } catch (error) {
       showToast(error.message);
-    } finally {
       setSubmitting(false);
     }
   };
-
-  if (placedOrder) {
-    return (
-      <div className="mx-auto max-w-[560px] rounded-[10px] border border-line bg-surface px-6 py-12 text-center sm:px-12">
-        <span className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full bg-inked text-bg">
-          <Check size={26} strokeWidth={2.5} />
-        </span>
-        <p className="font-mono mb-2 text-xs uppercase tracking-[0.15em] text-orange">
-          Order {placedOrder.id}
-        </p>
-        <h2 className="font-display mb-4 text-[clamp(26px,4vw,36px)] uppercase leading-none">
-          Thank you
-        </h2>
-        <p className="mb-7 text-sm leading-relaxed text-ink-soft">
-          {CHECKOUT.successNote}
-        </p>
-        <div className="flex flex-wrap justify-center gap-3.5">
-          <Button href="/">Continue shopping</Button>
-          <Button href="/contact" variant="ghost">
-            Contact us
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-14">
@@ -214,70 +183,16 @@ export function CheckoutForm() {
                 Payment
               </h2>
               <div className="rounded-[10px] border border-line bg-surface p-5 sm:p-6">
-                <div className="grid gap-x-5 sm:grid-cols-2">
-                  <Field label="Name on card" htmlFor="checkout-card-name">
-                    <input
-                      id="checkout-card-name"
-                      name="cardName"
-                      type="text"
-                      required
-                      placeholder="Jane Doe"
-                      className={INPUT_CLASSES}
-                      value={values.cardName}
-                      onChange={handleChange}
-                    />
-                  </Field>
-                  <Field label="Card number" htmlFor="checkout-card-number">
-                    <input
-                      id="checkout-card-number"
-                      name="cardNumber"
-                      type="text"
-                      required
-                      inputMode="numeric"
-                      maxLength={19}
-                      placeholder="4242 4242 4242 4242"
-                      className={INPUT_CLASSES}
-                      value={values.cardNumber}
-                      onChange={handleChange}
-                    />
-                  </Field>
-                </div>
-                <div className="grid gap-x-5 sm:grid-cols-2">
-                  <Field label="Expiry" htmlFor="checkout-expiry">
-                    <input
-                      id="checkout-expiry"
-                      name="expiry"
-                      type="text"
-                      required
-                      placeholder="MM / YY"
-                      className={INPUT_CLASSES}
-                      value={values.expiry}
-                      onChange={handleChange}
-                    />
-                  </Field>
-                  <Field label="CVC" htmlFor="checkout-cvc">
-                    <input
-                      id="checkout-cvc"
-                      name="cvc"
-                      type="text"
-                      required
-                      inputMode="numeric"
-                      maxLength={4}
-                      placeholder="123"
-                      className={INPUT_CLASSES}
-                      value={values.cvc}
-                      onChange={handleChange}
-                    />
-                  </Field>
-                </div>
-                <p className="text-[11.5px] leading-relaxed text-ink-soft">
-                  {CHECKOUT.note}
+                <p className="text-sm leading-relaxed text-ink-soft">
+                  {CHECKOUT.paymentNote}
                 </p>
               </div>
             </section>
 
             <Button type="submit" className="w-full sm:w-auto" disabled={submitting}>
-              {submitting ? "Placing order..." : `Place order · ${formatUSD(subtotal)}`}
+              {submitting
+                ? "Redirecting to secure payment..."
+                : `Pay with card · ${formatUSD(subtotal)}`}
             </Button>
           </form>
         )}

@@ -64,6 +64,9 @@ export function AdminOrderList({ orders, loading, onStatusChange }) {
                     {order.id}
                   </span>
                   <StatusBadge value={order.status} />
+                  {order.paymentStatus && (
+                    <StatusBadge value={order.paymentStatus} />
+                  )}
                 </div>
                 <p className="mt-0.5 truncate text-[12.5px] text-ink-soft">
                   {order.customer?.name ?? "Guest"} · {order.customer?.email} ·{" "}

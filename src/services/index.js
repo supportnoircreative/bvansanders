@@ -4,6 +4,8 @@ import  AuthService  from "./authService";
 import UserService from "./userService";
 import  ProductService  from "./productService";
 import  OrderService  from "./orderService";
+import StripeService from "./stripeService";
+import EmailService from "./emailService";
 
 export {
   api,
@@ -12,6 +14,8 @@ export {
   UserService,
   ProductService,
   OrderService,
+  StripeService,
+  EmailService,
 };
 
 const services = {
@@ -21,6 +25,8 @@ const services = {
   UserService,
   ProductService,
   OrderService,
+  StripeService,
+  EmailService,
 };
 
 export default services;

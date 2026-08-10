@@ -3,7 +3,7 @@ import { CheckoutForm } from "@/components/checkout/CheckoutForm";
 export const metadata = {
   title: "Checkout",
   description:
-    "Secure prototype checkout for prints and original paintings from B. Van Sanders.",
+    "Secure checkout for prints and original paintings from B. Van Sanders.",
 };
 
 export default function CheckoutPage() {

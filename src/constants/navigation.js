@@ -61,10 +61,14 @@ export const CHECKOUT = {
   empty: "Your cart is empty",
   emptyNote: "Add prints and originals from the catalog before checking out.",
   shipping: "Free insured shipping",
-  note: "No payment is processed at checkout — our team will contact you to arrange payment and shipping.",
-  success: "Order placed",
+  paymentNote:
+    "Payment is handled securely by Stripe. When you place the order you'll be redirected to Stripe to complete checkout — your card details never touch this site.",
+  note: "Secure payment by Stripe — you'll be redirected to complete checkout.",
+  success: "Payment received",
   successNote:
-    "Thank you — your order has been received. Our team will contact you shortly to arrange shipping and payment.",
+    "Thank you — your payment went through. Our team will email you to arrange shipping.",
+  successPendingNote:
+    "Your payment is confirmed by Stripe — we'll finalize your order shortly.",
 };
 
 export { siteConfig };

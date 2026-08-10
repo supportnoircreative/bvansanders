@@ -19,6 +19,13 @@ function stringField(fields, name) {
   return fields?.[name]?.stringValue ?? null;
 }
 
+function numericField(fields, name) {
+  const value = fields?.[name];
+  if (value?.integerValue != null) return Number(value.integerValue);
+  if (value?.doubleValue != null) return Number(value.doubleValue);
+  return null;
+}
+
 /**
  * Fetch a single product's metadata (title/description) as raw JSON.
  * - Returns { title, description } when the document exists.
@@ -61,4 +68,62 @@ export async function fetchProductMetadata(productId) {
     title,
     description: stringField(fields, "description") ?? "",
   };
+}
+
+/**
+ * Verify a Firebase ID token server-side via the Identity Toolkit REST
+ * API. Returns the user's uid when the token is valid, otherwise null.
+ * Keeps server routes dependency-free of the Firebase web SDK.
+ */
+export async function verifyIdToken(idToken) {
+  if (!API_KEY || !idToken) return null;
+  let response;
+  try {
+    response = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      }
+    );
+  } catch (error) {
+    console.error("[firebase rest] verifyIdToken:", error?.message ?? error);
+    return null;
+  }
+  if (!response.ok) return null;
+  const payload = (await response.json().catch(() => null));
+  return payload?.users?.[0]?.localId ?? null;
+}
+
+/**
+ * Fetch catalog prices for a set of product ids via the Firestore REST
+ * API (products are publicly readable). Used by server routes to
+ * re-validate cart totals so clients can't change what they pay. Products
+ * that can't be resolved are omitted; callers decide how to handle that.
+ */
+export async function fetchProductsById(productIds) {
+  const ids = [...new Set(productIds ?? [])].filter(Boolean);
+  if (!PROJECT_ID || !API_KEY || ids.length === 0) return new Map();
+  const results = new Map();
+  await Promise.all(
+    ids.map(async (productId) => {
+      try {
+        const response = await fetch(
+          `${BASE_URL}/products/${encodeURIComponent(productId)}?key=${API_KEY}`,
+          { signal: AbortSignal.timeout(8000) }
+        );
+        if (!response.ok) return;
+        const payload = await response.json();
+        const doc = payload.document ?? payload;
+        const fields = doc?.fields;
+        const title = stringField(fields, "title");
+        const price = numericField(fields, "price");
+        if (title && price != null) results.set(productId, { title, price });
+      } catch (error) {
+        console.error("[firebase rest] fetchProductsById:", error?.message ?? error);
+      }
+    })
+  );
+  return results;
 }

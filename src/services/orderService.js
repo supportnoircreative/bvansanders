@@ -110,10 +110,44 @@ export const OrderService = {
   async updateOrderStatus(orderId, status) {
     assertValidStatus(status);
     try {
-      return await updateDocument(orderRef(orderId), { status });
+      const order = await updateDocument(orderRef(orderId), { status });
+      if (order) {
+        fetch("/api/email/status-update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderId, status, order }),
+        }).catch((err) => {
+          console.warn("[OrderService] Status email trigger error:", err);
+        });
+      }
+      return order;
     } catch (error) {
       logError("OrderService.updateOrderStatus", error);
       throw toFriendlyError(error, "We couldn't update the order.");
+    }
+  },
+
+  async markOrderAsPaid(orderId, stripeSessionId) {
+    try {
+      const order = await updateDocument(orderRef(orderId), {
+        paymentStatus: PAYMENT_STATUS.PAID,
+        stripeSessionId,
+      });
+
+      if (order && !order.confirmationEmailSent) {
+        fetch("/api/email/order-confirmation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderId, order }),
+        }).catch((err) => {
+          console.warn("[OrderService] Confirmation email trigger error:", err);
+        });
+      }
+
+      return order;
+    } catch (error) {
+      logError("OrderService.markOrderAsPaid", error);
+      throw toFriendlyError(error, "We couldn't confirm your payment.");
     }
   },
 

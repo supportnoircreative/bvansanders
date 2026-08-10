@@ -1,9 +1,12 @@
+import api from "./api";
+
 /**
- * Contact/commission inquiries. Backend-ready stub.
+ * Contact/commission inquiries service. Sends message to backend /api/contact
+ * which dispatches notification emails via Resend to studio & customer.
  */
 export const contactService = {
   async submit({ name, email, interest, message }) {
-    return { name, email, interest, message, receivedAt: Date.now() };
+    return api.post("/api/contact", { name, email, interest, message });
   },
 };
 

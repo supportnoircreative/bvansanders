@@ -21,7 +21,14 @@ async function request(path, options = {}) {
   });
 
   if (!response.ok) {
-    throw new ApiError(`Request failed: ${response.status}`, response.status);
+    let message = `Request failed: ${response.status}`;
+    try {
+      const data = await response.json();
+      if (data?.error) message = data.error;
+    } catch {
+      // Keep the status fallback when the body isn't JSON.
+    }
+    throw new ApiError(message, response.status);
   }
 
   if (response.status === 204) return null;
