@@ -5,6 +5,7 @@ import { ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/buttons";
 import { Field } from "@/components/forms/Field";
 import { INPUT_CLASSES } from "@/components/forms/fieldClasses";
+import { cn } from "@/lib/cn";
 import { useToast } from "@/hooks/useToast";
 import { ProductService } from "@/services";
 import { formatSize } from "@/utils/format";
@@ -28,6 +29,7 @@ const EMPTY_FORM = {
   description: "",
   medium: "",
   edition: "",
+  caption: "",
   image: "",
 };
 
@@ -60,6 +62,7 @@ function initialForm(editing) {
     description: editing.description ?? "",
     medium: editing.medium ?? "",
     edition: editing.edition ?? "",
+    caption: editing.caption ?? "",
     image: editing.image ?? "",
   };
 }
@@ -92,9 +95,18 @@ export function ProductForm({ editing = null, onSaved, onCancelEdit }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    const isGallery = form.category === "gallery";
+    if (isGallery && !form.image && !imageFile) {
+      showToast("An image is required for gallery items.");
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const size = formatSize(form.width, form.height, form.sizeUnit);
+      const size = isGallery
+        ? ""
+        : formatSize(form.width, form.height, form.sizeUnit);
       const meta = CATEGORY_META[form.category] ?? CATEGORY_META.print;
       const tag =
         form.tag === "custom" ? form.customTag.trim() : form.tag;
@@ -116,13 +128,18 @@ export function ProductForm({ editing = null, onSaved, onCancelEdit }) {
         description: form.description.trim(),
         medium: form.medium.trim(),
         edition: form.edition.trim(),
+        caption: form.caption.trim(),
         image,
-        price: Number(form.price),
-        width: Number(form.width),
-        height: Number(form.height),
-        sizeUnit: form.sizeUnit,
+        price: isGallery ? 0 : Number(form.price),
         size,
         dimensions: size,
+        ...(isGallery
+          ? {}
+          : {
+              width: Number(form.width),
+              height: Number(form.height),
+              sizeUnit: form.sizeUnit,
+            }),
       };
 
       const saved = editing
@@ -177,15 +194,45 @@ export function ProductForm({ editing = null, onSaved, onCancelEdit }) {
           id="admin-title"
           name="title"
           type="text"
-          required
-          placeholder="e.g. Static Bloom II"
+          required={form.category !== "gallery"}
+          placeholder={
+            form.category === "gallery"
+              ? "e.g. Studio shelf — optional"
+              : "e.g. Static Bloom II"
+          }
           className={INPUT_CLASSES}
           value={form.title}
           onChange={handleChange}
         />
       </Field>
 
-      <div className="grid gap-x-5 sm:grid-cols-2">
+      {form.category === "gallery" && (
+        <Field
+          label="Caption"
+          htmlFor="admin-caption"
+          className="-mt-1"
+        >
+          <input
+            id="admin-caption"
+            name="caption"
+            type="text"
+            placeholder="e.g. Studio wall, Denver"
+            className={INPUT_CLASSES}
+            value={form.caption}
+            onChange={handleChange}
+          />
+          <p className="mt-1.5 text-[11px] text-ink-soft">
+            The text shown under this piece on the gallery page.
+          </p>
+        </Field>
+      )}
+
+      <div
+        className={cn(
+          "grid gap-x-5",
+          form.category !== "gallery" && "sm:grid-cols-2"
+        )}
+      >
         <Field label="Category" htmlFor="admin-category">
           <select
             id="admin-category"
@@ -235,116 +282,128 @@ export function ProductForm({ editing = null, onSaved, onCancelEdit }) {
         </Field>
       )}
 
-      <Field label="Price (USD)" htmlFor="admin-price">
-        <input
-          id="admin-price"
-          name="price"
-          type="number"
-          required
-          min="1"
-          step="0.01"
-          placeholder="145"
-          className={INPUT_CLASSES}
-          value={form.price}
-          onChange={handleChange}
-        />
-      </Field>
+      {form.category !== "gallery" && (
+        <>
+          <Field label="Price (USD)" htmlFor="admin-price">
+            <input
+              id="admin-price"
+              name="price"
+              type="number"
+              required
+              min="1"
+              step="0.01"
+              placeholder="145"
+              className={INPUT_CLASSES}
+              value={form.price}
+              onChange={handleChange}
+            />
+          </Field>
 
-      <Field label="Size" htmlFor="admin-width">
-        <div className="flex items-center gap-2">
-          <input
-            id="admin-width"
-            name="width"
-            type="number"
-            required
-            min="0.1"
-            step="0.1"
-            aria-label="Width"
-            placeholder="Width"
-            className={INPUT_CLASSES + " min-w-0 flex-1"}
-            value={form.width}
-            onChange={handleChange}
-          />
-          <span className="font-mono text-sm text-ink-soft" aria-hidden="true">
-            ×
-          </span>
-          <input
-            name="height"
-            type="number"
-            required
-            min="0.1"
-            step="0.1"
-            aria-label="Height"
-            placeholder="Height"
-            className={INPUT_CLASSES + " min-w-0 flex-1"}
-            value={form.height}
-            onChange={handleChange}
-          />
-          <select
-            name="sizeUnit"
-            aria-label="Size unit"
-            className={UNIT_SELECT_CLASSES}
-            value={form.sizeUnit}
-            onChange={handleChange}
-          >
-            {SIZE_UNITS.map((unit) => (
-              <option key={unit.value} value={unit.value}>
-                {unit.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <p className="mt-1.5 text-[11px] text-ink-soft">
-          e.g. 18 inches × 24 inches → “18&quot; × 24&quot;”
-        </p>
-      </Field>
+          <Field label="Size" htmlFor="admin-width">
+            <div className="flex items-center gap-2">
+              <input
+                id="admin-width"
+                name="width"
+                type="number"
+                required
+                min="0.1"
+                step="0.1"
+                aria-label="Width"
+                placeholder="Width"
+                className={INPUT_CLASSES + " min-w-0 flex-1"}
+                value={form.width}
+                onChange={handleChange}
+              />
+              <span
+                className="font-mono text-sm text-ink-soft"
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <input
+                name="height"
+                type="number"
+                required
+                min="0.1"
+                step="0.1"
+                aria-label="Height"
+                placeholder="Height"
+                className={INPUT_CLASSES + " min-w-0 flex-1"}
+                value={form.height}
+                onChange={handleChange}
+              />
+              <select
+                name="sizeUnit"
+                aria-label="Size unit"
+                className={UNIT_SELECT_CLASSES}
+                value={form.sizeUnit}
+                onChange={handleChange}
+              >
+                {SIZE_UNITS.map((unit) => (
+                  <option key={unit.value} value={unit.value}>
+                    {unit.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <p className="mt-1.5 text-[11px] text-ink-soft">
+              e.g. 18 inches × 24 inches → “18&quot; × 24&quot;”
+            </p>
+          </Field>
 
-      <div className="grid gap-x-5 sm:grid-cols-2">
-        <Field label="Medium" htmlFor="admin-medium">
-          <input
-            id="admin-medium"
-            name="medium"
-            type="text"
-            maxLength={60}
-            placeholder={`e.g. ${MEDIUM_BY_KIND.print}`}
-            className={INPUT_CLASSES}
-            value={form.medium}
-            onChange={handleChange}
-          />
-        </Field>
+          <div className="grid gap-x-5 sm:grid-cols-2">
+            <Field label="Medium" htmlFor="admin-medium">
+              <input
+                id="admin-medium"
+                name="medium"
+                type="text"
+                maxLength={60}
+                placeholder={`e.g. ${MEDIUM_BY_KIND.print}`}
+                className={INPUT_CLASSES}
+                value={form.medium}
+                onChange={handleChange}
+              />
+            </Field>
 
-        <Field label="Edition" htmlFor="admin-edition">
-          <input
-            id="admin-edition"
-            name="edition"
-            type="text"
-            maxLength={60}
-            placeholder={`e.g. ${EDITION_BY_KIND.print}`}
-            className={INPUT_CLASSES}
-            value={form.edition}
-            onChange={handleChange}
-          />
-        </Field>
-      </div>
-      <p className="-mt-2 mb-5 text-[11px] text-ink-soft">
-        Shown on the product page. Leave blank to use the default for the
-        category.
-      </p>
+            <Field label="Edition" htmlFor="admin-edition">
+              <input
+                id="admin-edition"
+                name="edition"
+                type="text"
+                maxLength={60}
+                placeholder={`e.g. ${EDITION_BY_KIND.print}`}
+                className={INPUT_CLASSES}
+                value={form.edition}
+                onChange={handleChange}
+              />
+            </Field>
+          </div>
+          <p className="-mt-2 mb-5 text-[11px] text-ink-soft">
+            Shown on the product page. Leave blank to use the default for the
+            category.
+          </p>
 
-      <Field label="Description" htmlFor="admin-description">
-        <textarea
-          id="admin-description"
-          name="description"
-          placeholder="Short description shown on the product page..."
-          className={INPUT_CLASSES + " min-h-[90px] resize-y"}
-          value={form.description}
-          onChange={handleChange}
-        />
-      </Field>
+          <Field label="Description" htmlFor="admin-description">
+            <textarea
+              id="admin-description"
+              name="description"
+              placeholder="Short description shown on the product page..."
+              className={INPUT_CLASSES + " min-h-[90px] resize-y"}
+              value={form.description}
+              onChange={handleChange}
+            />
+          </Field>
+        </>
+      )}
 
       <div className="mb-5">
         <span className="mb-2 block text-[11.5px] font-extrabold uppercase tracking-wider text-ink-soft">
           Image
+          {form.category === "gallery" && (
+            <span className="ml-1 text-orange" aria-hidden="true">
+              *
+            </span>
+          )}
         </span>
         {imagePreview || form.image ? (
           <div className="relative inline-block">

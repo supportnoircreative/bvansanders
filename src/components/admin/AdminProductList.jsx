@@ -18,7 +18,7 @@ function sizeLabel(product) {
   return "—";
 }
 
-export function AdminProductList({ products, loading, onEdit, onDelete }) {
+export function AdminProductList({ products, loading, onEdit, onDelete, onToggleFeatured }) {
   const [confirmingId, setConfirmingId] = useState(null);
 
   if (loading) {
@@ -72,13 +72,34 @@ export function AdminProductList({ products, loading, onEdit, onDelete }) {
                 <p className="truncate text-[14.5px] font-bold">
                   {product.title}
                 </p>
-                {product.featured && (
+                <button
+                  type="button"
+                  onClick={() => onToggleFeatured(product)}
+                  title={
+                    product.featured
+                      ? "Remove from homepage"
+                      : "Show on homepage"
+                  }
+                  aria-label={
+                    product.featured
+                      ? `Unfeature ${product.title}`
+                      : `Feature ${product.title}`
+                  }
+                  aria-pressed={product.featured}
+                  className={
+                    "flex size-8 cursor-pointer items-center justify-center rounded-full transition-colors duration-150 " +
+                    (product.featured
+                      ? "text-yellow hover:bg-chalk"
+                      : "text-ink-soft hover:bg-chalk hover:text-inked")
+                  }
+                >
                   <Star
                     size={13}
-                    className="fill-yellow text-yellow"
-                    aria-label="Featured"
+                    className={
+                      product.featured ? "fill-yellow text-yellow" : ""
+                    }
                   />
-                )}
+                </button>
                 <StatusBadge value={product.tag} />
               </div>
               <p className="mt-0.5 truncate font-mono text-[12px] text-ink-soft">

@@ -3,7 +3,7 @@ import { EmailHeader } from "../components/EmailHeader";
 import { EmailFooter } from "../components/EmailFooter";
 import { EmailButton } from "../components/EmailButton";
 
-export function ContactInquiryEmail({ name, email, interest, message, isNotification = true }) {
+export function ContactInquiryEmail({ name, email, interest, message, item, itemSize, isNotification = true }) {
   return (
     <EmailContainer previewText={isNotification ? `New Inquiry from ${name}: ${interest}` : `Thank you for contacting B. Van Sanders`}>
       <EmailHeader />
@@ -142,6 +142,33 @@ export function ContactInquiryEmail({ name, email, interest, message, isNotifica
                   </strong>
                 </td>
               </tr>
+              {item && (
+                <tr>
+                  <td style={{ paddingBottom: "12px" }}>
+                    <span
+                      style={{
+                        fontFamily: "ui-monospace, monospace",
+                        fontSize: "10.5px",
+                        color: "#6e6b66",
+                        textTransform: "uppercase",
+                        letterSpacing: "1px",
+                        display: "block",
+                      }}
+                    >
+                      Item of Interest
+                    </span>
+                    <strong style={{ fontFamily: "-apple-system, sans-serif", fontSize: "14px", color: "#141414" }}>
+                      &ldquo;{item}&rdquo;
+                      {itemSize && (
+                        <span style={{ fontFamily: "ui-monospace, monospace", fontSize: "12.5px", color: "#6e6b66" }}>
+                          {" "}
+                          &mdash; {itemSize}
+                        </span>
+                      )}
+                    </strong>
+                  </td>
+                </tr>
+              )}
               <tr>
                 <td style={{ borderTop: "1px solid #e6e2da", paddingTop: "12px" }}>
                   <span
@@ -189,14 +216,16 @@ export function ContactInquiryEmail({ name, email, interest, message, isNotifica
   );
 }
 
-export function getContactInquiryText({ name, email, interest, message, isNotification = true }) {
+export function getContactInquiryText({ name, email, interest, message, item, itemSize, isNotification = true }) {
+  const itemLabel = item ? `Item: ${item}${itemSize ? ` (${itemSize})` : ""}` : null;
+
   if (isNotification) {
     return `
 NEW STUDIO INQUIRY — B. VAN SANDERS
 
 From: ${name} <${email}>
 Topic: ${interest}
-
+${itemLabel ? `${itemLabel}\n` : ""}
 Message:
 ${message}
 `.trim();
@@ -209,7 +238,7 @@ Hi ${name},
 
 Thank you for reaching out to B. Van Sanders. We have received your message regarding "${interest}" and will get back to you soon.
 
-Your Message:
+${itemLabel ? `${itemLabel}\n\n` : ""}Your Message:
 ${message}
 
 B. Van Sanders Art Studio

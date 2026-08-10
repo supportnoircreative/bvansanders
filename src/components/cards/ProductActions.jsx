@@ -4,8 +4,7 @@ import { CART } from "@/constants/navigation";
 import { useCart } from "@/hooks/useCart";
 import { useToast } from "@/hooks/useToast";
 import { Button, MiniButton } from "@/components/buttons";
-
-const INQUIRY_HREF = "/contact";
+import { inquiryHref } from "@/utils/inquiry";
 
 /**
  * Whether a product asks customers to inquire rather than add to cart:
@@ -30,10 +29,15 @@ export function ProductActions({ product, size = "md" }) {
 
   if (shouldInquire(product)) {
     const label = "Inquire";
+    const href = inquiryHref({
+      item: product.title,
+      size: product.size || product.dimensions || "",
+      kind: product.kind,
+    });
     return size === "lg" ? (
-      <Button href={INQUIRY_HREF}>{label}</Button>
+      <Button href={href}>{label}</Button>
     ) : (
-      <MiniButton href={INQUIRY_HREF}>{label}</MiniButton>
+      <MiniButton href={href}>{label}</MiniButton>
     );
   }
 

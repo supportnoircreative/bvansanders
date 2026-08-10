@@ -12,14 +12,14 @@ export async function POST(request) {
     return jsonResponse({ error: "Invalid request payload." }, 400);
   }
 
-  const { name, email, interest, message } = body ?? {};
+  const { name, email, interest, message, item, itemSize } = body ?? {};
 
   if (!name || !email || !message) {
     return jsonResponse({ error: "Name, email, and message are required." }, 400);
   }
 
   try {
-    const result = await EmailService.sendContactInquiry({ name, email, interest, message });
+    const result = await EmailService.sendContactInquiry({ name, email, interest, message, item, itemSize });
 
     return jsonResponse({
       success: true,

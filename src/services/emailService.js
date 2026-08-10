@@ -121,27 +121,28 @@ export const EmailService = {
   /**
    * Send Contact Inquiry notification to studio & auto-reply to customer.
    */
-  async sendContactInquiry({ name, email, interest, message }) {
+  async sendContactInquiry({ name, email, interest, message, item, itemSize }) {
     if (!email || !name) {
       return { success: false, error: "Name and email are required." };
     }
 
     const studioEmail = process.env.CONTACT_EMAIL || "bvansanders@gmail.com";
+    const itemLabel = item ? (itemSize ? `${item} — ${itemSize}` : item) : null;
 
     // 1. Send Notification Email to Studio Owner
     const studioResult = await this.sendEmail({
       to: studioEmail,
-      subject: `New Inquiry: ${interest} — ${name}`,
-      react: ContactInquiryEmail({ name, email, interest, message, isNotification: true }),
-      text: getContactInquiryText({ name, email, interest, message, isNotification: true }),
+      subject: `New Inquiry: ${interest}${itemLabel ? ` — ${itemLabel}` : ""} — ${name}`,
+      react: ContactInquiryEmail({ name, email, interest, message, item, itemSize, isNotification: true }),
+      text: getContactInquiryText({ name, email, interest, message, item, itemSize, isNotification: true }),
     });
 
     // 2. Send Auto-Confirmation Email to Customer
     const customerResult = await this.sendEmail({
       to: email,
       subject: `We've received your inquiry — B. Van Sanders`,
-      react: ContactInquiryEmail({ name, email, interest, message, isNotification: false }),
-      text: getContactInquiryText({ name, email, interest, message, isNotification: false }),
+      react: ContactInquiryEmail({ name, email, interest, message, item, itemSize, isNotification: false }),
+      text: getContactInquiryText({ name, email, interest, message, item, itemSize, isNotification: false }),
     });
 
     return {

@@ -5,8 +5,8 @@ import api from "./api";
  * which dispatches notification emails via Resend to studio & customer.
  */
 export const contactService = {
-  async submit({ name, email, interest, message }) {
-    return api.post("/api/contact", { name, email, interest, message });
+  async submit({ name, email, interest, message, item, itemSize }) {
+    return api.post("/api/contact", { name, email, interest, message, item, itemSize });
   },
 };
 

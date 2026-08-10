@@ -55,6 +55,25 @@ export function AdminPanel() {
     [refreshProducts, showToast]
   );
 
+  const handleToggleFeatured = useCallback(
+    async (product) => {
+      try {
+        await ProductService.updateProduct(product.id, {
+          featured: !product.featured,
+        });
+        showToast(
+          product.featured
+            ? "Removed from homepage"
+            : "Featured on homepage"
+        );
+        refreshProducts();
+      } catch (error) {
+        showToast(error.message);
+      }
+    },
+    [refreshProducts, showToast]
+  );
+
   const handleStatusChange = useCallback(
     async (id, status) => {
       try {
@@ -148,6 +167,7 @@ export function AdminPanel() {
             loading={productsLoading}
             onEdit={setEditing}
             onDelete={handleDelete}
+            onToggleFeatured={handleToggleFeatured}
           />
         </div>
       ) : (

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { ContactForm } from "@/components/forms/ContactForm";
 import { ContactInfo } from "@/components/sections/ContactInfo";
@@ -19,7 +20,9 @@ export default function ContactPage() {
         </h2>
 
         <div className="grid gap-10 md:grid-cols-2 md:gap-[60px]">
-          <ContactForm />
+          <Suspense fallback={null}>
+            <ContactForm />
+          </Suspense>
           <ContactInfo />
         </div>
       </div>
