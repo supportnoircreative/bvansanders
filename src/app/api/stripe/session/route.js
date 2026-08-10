@@ -42,8 +42,10 @@ export async function POST(request) {
       return jsonError("This payment doesn't belong to your account.", 403);
     }
 
+    const paymentStatus = session.payment_status ?? "unpaid";
     return Response.json({
-      paid: session.payment_status === "paid",
+      paid: paymentStatus === "paid",
+      paymentStatus,
       orderId: session.metadata?.orderId ?? null,
     });
   } catch (error) {

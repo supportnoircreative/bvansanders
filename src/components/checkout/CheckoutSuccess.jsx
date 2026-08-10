@@ -13,6 +13,7 @@ import { CHECKOUT } from "@/constants/navigation";
 const STATUS = {
   VERIFYING: "verifying",
   PAID: "paid",
+  PENDING: "pending",
   ERROR: "error",
 };
 
@@ -87,22 +88,30 @@ export function CheckoutSuccess() {
       try {
         const result = await StripeService.getSessionStatus({ sessionId });
         if (cancelled) return;
-        if (!result?.paid) {
-          setStatus(STATUS.ERROR);
-          return;
-        }
-        clearCart();
-        if (result.orderId && user) {
-          try {
-            await OrderService.markOrderAsPaid(result.orderId, sessionId);
-          } catch {
+
+        if (result?.paid) {
+          clearCart();
+          if (result.orderId && user) {
+            try {
+              await OrderService.markOrderAsPaid(result.orderId, sessionId);
+            } catch {
+              setDeferredNote(true);
+            }
+          } else {
             setDeferredNote(true);
           }
-        } else {
-          setDeferredNote(true);
+          setOrderId(result.orderId);
+          setStatus(STATUS.PAID);
+          return;
         }
-        setOrderId(result.orderId);
-        setStatus(STATUS.PAID);
+
+        if (result?.paymentStatus === "pending") {
+          // Payment hasn't settled yet — leave the order unconfirmed.
+          setStatus(STATUS.PENDING);
+          return;
+        }
+
+        setStatus(STATUS.ERROR);
       } catch {
         if (!cancelled) setStatus(STATUS.ERROR);
       }
@@ -133,11 +142,20 @@ export function CheckoutSuccess() {
     );
   }
 
-  if (status === STATUS.ERROR) {
+  if (status === STATUS.PENDING) {
     return (
       <ProblemCard
         title="Payment pending"
-        note="We couldn't confirm your payment just now. If it went through, your order is safe — contact us and we'll verify it right away."
+        note="Your payment hasn't settled yet, so your order isn't confirmed. We'll confirm the order as soon as payment clears — no action needed. If you have questions, contact us."
+      />
+    );
+  }
+
+  if (status === STATUS.ERROR) {
+    return (
+      <ProblemCard
+        title="Payment not completed"
+        note="We couldn't confirm a completed payment for this order, so it hasn't been confirmed. If you did pay, your order is safe with Stripe — contact us and we'll verify it right away."
       />
     );
   }
