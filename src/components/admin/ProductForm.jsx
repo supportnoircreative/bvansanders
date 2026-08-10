@@ -79,6 +79,10 @@ export function ProductForm({ editing = null, onSaved, onCancelEdit }) {
     setForm((current) => ({ ...current, [target.name]: target.value }));
   };
 
+  const handleToggle = ({ target }) => {
+    setForm((current) => ({ ...current, [target.name]: target.checked }));
+  };
+
   const handleImageChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -447,7 +451,7 @@ export function ProductForm({ editing = null, onSaved, onCancelEdit }) {
           type="checkbox"
           name="featured"
           checked={form.featured}
-          onChange={handleChange}
+          onChange={handleToggle}
           className="peer sr-only"
         />
         <span className="relative h-6 w-11 shrink-0 rounded-full bg-chalk transition-colors peer-checked:bg-orange" />

@@ -2,24 +2,15 @@
 
 import { motion } from "framer-motion";
 import { getArtGradient } from "@/utils/artwork";
-import { MiniButton } from "@/components/buttons";
-import { inquiryHref } from "@/utils/inquiry";
 
 /**
  * Gallery tile for an admin-created gallery product. Image is the only
  * required field, so the caption falls back to the title and finally to
- * "Untitled piece". Every tile offers an Inquire button that carries the
- * item's details to the contact form.
+ * "Untitled piece".
  */
 export function GalleryItem({ item, index = 0 }) {
-  const reference = item.title || item.caption || "Untitled piece";
   const caption = item.caption || item.title || "Untitled piece";
   const hasImage = Boolean(item.image);
-  const href = inquiryHref({
-    item: reference,
-    size: item.size || item.dimensions || "",
-    kind: "gallery",
-  });
 
   return (
     <motion.figure
@@ -38,19 +29,14 @@ export function GalleryItem({ item, index = 0 }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={item.image}
-            alt={reference}
+            alt={caption}
             className="absolute inset-0 h-full w-full object-contain"
           />
         )}
       </span>
-      <div className="flex items-center justify-between gap-2 bg-surface px-3 py-2.5">
-        <figcaption className="min-w-0 truncate font-mono text-[11px] text-ink-soft">
-          {caption}
-        </figcaption>
-        <MiniButton href={href} className="shrink-0">
-          Inquire
-        </MiniButton>
-      </div>
+      <figcaption className="bg-surface px-3 py-2.5 font-mono text-[11px] text-ink-soft">
+        {caption}
+      </figcaption>
     </motion.figure>
   );
 }
