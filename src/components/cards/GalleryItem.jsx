@@ -34,9 +34,6 @@ export function GalleryItem({ item, index = 0 }) {
           />
         )}
       </span>
-      <figcaption className="bg-surface px-3 py-2.5 font-mono text-[11px] text-ink-soft">
-        {caption}
-      </figcaption>
     </motion.figure>
   );
 }
