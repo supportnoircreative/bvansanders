@@ -26,7 +26,7 @@ export function Hero() {
           transition={EASE}
           className="font-mono mb-4 text-xs uppercase tracking-[0.15em] text-orange sm:mb-[18px]"
         >
-          Acrylic on canvas · Denver, CO
+          Acrylic on canvas · by B. Van Sanders
         </motion.p>
 
         <motion.h1

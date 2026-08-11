@@ -5,6 +5,10 @@ export const metadata = {
   title: "Payment Complete",
   description:
     "Your payment was received — thank you for your order from B. Van Sanders.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function CheckoutSuccessPage() {

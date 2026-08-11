@@ -48,7 +48,7 @@ export const ACCOUNT_MESSAGES = {
 };
 
 export const CONTACT_SUCCESS_MESSAGE =
-  "Message sent. B. Van Sanders' team will reply soon (prototype)";
+  "Message sent. B. Van Sanders' team will reply soon";
 
 export const CART = {
   empty: "Your cart is empty",

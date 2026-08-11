@@ -6,6 +6,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import siteConfig from "@/config/site";
+import { seoConfig } from "@/config/seo";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -32,23 +33,58 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata = {
+  metadataBase: new URL(seoConfig.siteUrl),
+
   title: {
-    default: siteConfig.name,
-    template: `%s — ${siteConfig.name}`,
+    default: seoConfig.defaultTitle,
+    template: seoConfig.titleTemplate,
   },
-  description: siteConfig.description,
+
+  description: seoConfig.description,
+  keywords: seoConfig.keywords,
+  authors: [{ name: seoConfig.artistName }],
+  creator: seoConfig.artistName,
+  publisher: seoConfig.legalName,
+  category: "art",
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+
   icons: {
     icon: siteConfig.logo.src,
   },
+
+  manifest: "/manifest.webmanifest",
+
   openGraph: {
-    title: siteConfig.name,
-    description: siteConfig.description,
     type: "website",
+    siteName: seoConfig.og.siteName,
+    locale: seoConfig.og.locale,
+    title: seoConfig.defaultTitle,
+    description: seoConfig.description,
+    url: seoConfig.siteUrl,
+    images: [
+      {
+        url: seoConfig.og.defaultImage,
+        alt: seoConfig.og.defaultAlt,
+      },
+    ],
   },
+
   twitter: {
-    card: "summary",
-    title: siteConfig.name,
-    description: siteConfig.description,
+    card: seoConfig.twitter.card,
+    title: seoConfig.defaultTitle,
+    description: seoConfig.description,
+    images: [seoConfig.og.defaultImage],
   },
 };
 

@@ -2,6 +2,10 @@ import { AuthForm } from "@/components/forms/AuthForm";
 
 export const metadata = {
   title: "Account",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function LoginPage() {

@@ -11,9 +11,9 @@ export function AboutSection() {
       </div>
       <div>
         <Eyebrow>About the Artist</Eyebrow>
-        <h2 className="font-display mb-6 text-[clamp(30px,4vw,48px)] uppercase leading-[1.02]">
+        <h1 className="font-display mb-6 text-[clamp(30px,4vw,48px)] uppercase leading-[1.02]">
           B. Van Sanders
-        </h2>
+        </h1>
 <div>
           {ARTIST_BIO.map(({ highlight, text }, index) => (
             <p

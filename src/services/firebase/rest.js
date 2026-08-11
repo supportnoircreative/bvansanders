@@ -26,48 +26,107 @@ function numericField(fields, name) {
   return null;
 }
 
+function booleanField(fields, name) {
+  const value = fields?.[name]?.booleanValue;
+  return typeof value === "boolean" ? value : null;
+}
+
 /**
- * Fetch a single product's metadata (title/description) as raw JSON.
- * - Returns { title, description } when the document exists.
- * - Returns null only when the document genuinely doesn't exist (404).
- * - Returns FALLBACK_METADATA when the request failed for other reasons.
+ * Parse a Firestore REST document into a serializable product object.
+ * Only fields the storefront actually uses are read.
+ */
+export function parseProductDoc(doc) {
+  const fields = doc?.fields;
+  if (!fields) return null;
+  return {
+    id: doc.name?.split("/").pop() ?? null,
+    title: stringField(fields, "title"),
+    description: stringField(fields, "description") ?? "",
+    price: numericField(fields, "price"),
+    size: stringField(fields, "size") ?? "",
+    dimensions: stringField(fields, "dimensions") ?? "",
+    kind: stringField(fields, "kind") ?? null,
+    frameLabel: stringField(fields, "frameLabel") ?? "",
+    medium: stringField(fields, "medium") ?? "",
+    edition: stringField(fields, "edition") ?? "",
+    image: stringField(fields, "image") ?? null,
+    sold: booleanField(fields, "sold") ?? false,
+    featured: booleanField(fields, "featured") ?? false,
+    isActive: booleanField(fields, "isActive") ?? true,
+    createdAt: fields?.createdAt?.timestampValue ?? null,
+    updatedAt: fields?.updatedAt?.timestampValue ?? null,
+  };
+}
+
+async function fetchDoc(url) {
+  let response;
+  try {
+    response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  } catch (error) {
+    console.error("[firebase rest] request failed:", error?.message ?? error);
+    return { status: 0, payload: null };
+  }
+  if (response.status === 404) return { status: 404, payload: null };
+  const payload = await response.json().catch(() => null);
+  if (!response.ok || !payload) {
+    console.error("[firebase rest] unexpected response:", response.status);
+    return { status: response.status, payload: null };
+  }
+  return { status: response.status, payload };
+}
+
+/**
+ * Fetch a single product document as plain JSON. Returns the parsed
+ * product (title, description, price, image, kind, sold, dimensions,
+ * medium, edition, …) when it exists, null on a genuine 404, or
+ * FALLBACK_METADATA when the request fails for other reasons.
  */
 export async function fetchProductMetadata(productId) {
   if (!PROJECT_ID || !API_KEY || !productId) return FALLBACK_METADATA;
 
-  let response;
-  try {
-    response = await fetch(
-      `${BASE_URL}/products/${encodeURIComponent(productId)}?key=${API_KEY}`,
-      { signal: AbortSignal.timeout(8000) }
-    );
-  } catch (error) {
-    console.error("[firebase rest] fetchProductMetadata:", error?.message ?? error);
-    return FALLBACK_METADATA;
-  }
-
-  if (response.status === 404) return null;
-
-  const payload = (await response.json().catch(() => null));
-  if (!response.ok || !payload) {
-    console.error(
-      "[firebase rest] fetchProductMetadata: unexpected",
-      response.status
-    );
-    return FALLBACK_METADATA;
-  }
+  const { status, payload } = await fetchDoc(
+    `${BASE_URL}/products/${encodeURIComponent(productId)}?key=${API_KEY}`
+  );
+  if (status === 404) return null;
+  if (!payload) return FALLBACK_METADATA;
 
   // A GET of a single document returns the Document object directly;
   // wrapped forms (`document`) appear in commit/runQuery responses.
   const doc = payload.document ?? payload;
-  const fields = doc?.fields;
-  const title = stringField(fields, "title");
-  if (!title) return null;
+  const product = parseProductDoc(doc);
+  if (!product?.title) return null;
 
-  return {
-    title,
-    description: stringField(fields, "description") ?? "",
-  };
+  return product;
+}
+
+/**
+ * List all product documents via the Firestore REST API (products are
+ * publicly readable). Follows pagination tokens. Used by server-side
+ * code (e.g. the sitemap) where the web SDK isn't available. Returns []
+ * when the request fails.
+ */
+export async function fetchAllProducts({ pageSize = 300 } = {}) {
+  if (!PROJECT_ID || !API_KEY) return [];
+  const products = [];
+  let nextToken = null;
+
+  do {
+    const params = new URLSearchParams({ key: API_KEY, pageSize: String(pageSize) });
+    if (nextToken) params.set("pageToken", nextToken);
+
+    const payload = await fetchDoc(
+      `${BASE_URL}/products?${params.toString()}`
+    );
+    if (!payload) break;
+
+    for (const doc of payload.documents ?? []) {
+      const product = parseProductDoc(doc);
+      if (product?.id && product.title) products.push(product);
+    }
+    nextToken = payload.nextPageToken ?? null;
+  } while (nextToken);
+
+  return products;
 }
 
 /**

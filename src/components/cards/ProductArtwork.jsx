@@ -2,17 +2,19 @@
 
 import { motion } from "framer-motion";
 import { getArtGradient } from "@/utils/artwork";
+import { kindAltPhrase } from "@/config/seo";
 import { FrameLabel } from "./FrameLabel";
 import { SoldBadge } from "./SoldBadge";
 
 /**
  * Product artwork. Renders the full uploaded image (Firebase Storage) —
- * never cropped — on top of the procedural gradient backdrop when the
- * image's aspect ratio doesn't match the artwork frame. Falls back to the
- * gradient alone when there is no image.
+ * never cropped — on top of the white backdrop when the image's aspect
+ * ratio doesn't match the artwork frame. Falls back to the white backdrop
+ * alone when there is no image.
  */
 export function ProductArtwork({ product, index = 0, label }) {
   const hasImage = Boolean(product.image);
+  const altText = `${product.title} ${kindAltPhrase(product.kind)} by B. Van Sanders`;
 
   return (
     <motion.div
@@ -27,7 +29,9 @@ export function ProductArtwork({ product, index = 0, label }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={product.image}
-          alt={product.title}
+          alt={altText}
+          loading="lazy"
+          decoding="async"
           className="absolute inset-0 h-full w-full object-contain"
         />
       )}

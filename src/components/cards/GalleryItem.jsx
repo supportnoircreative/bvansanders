@@ -29,7 +29,9 @@ export function GalleryItem({ item, index = 0 }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={item.image}
-            alt={caption}
+            alt={`${caption} by B. Van Sanders`}
+            loading="lazy"
+            decoding="async"
             className="absolute inset-0 h-full w-full object-contain"
           />
         )}

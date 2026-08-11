@@ -4,6 +4,10 @@ export const metadata = {
   title: "Checkout",
   description:
     "Secure checkout for prints and original paintings from B. Van Sanders.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function CheckoutPage() {

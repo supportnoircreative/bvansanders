@@ -21,9 +21,17 @@ export async function POST(request) {
   try {
     const result = await EmailService.sendContactInquiry({ name, email, interest, message, item, itemSize });
 
+    if (!result.success) {
+      console.error("[api/contact] Resend failed to deliver inquiry:", result.error);
+      return jsonResponse({
+        success: false,
+        error: result.error || "Failed to deliver inquiry email.",
+      }, 500);
+    }
+
     return jsonResponse({
       success: true,
-      result,
+      emailId: result.studioEmailId,
       message: "Your inquiry has been submitted and sent to the studio.",
     });
   } catch (error) {
