@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/buttons";
 import { Field } from "./Field";
@@ -32,6 +33,7 @@ export function AuthForm() {
     logout,
   } = useAuth();
   const { showToast } = useToast();
+  const router = useRouter();
   const [mode, setMode] = useState("login");
   const [values, setValues] = useState(INITIAL_VALUES);
   const [submitting, setSubmitting] = useState(false);
@@ -43,6 +45,12 @@ export function AuthForm() {
     setMode(nextMode);
     setValues(INITIAL_VALUES);
   };
+
+  useEffect(() => {
+    if (user) {
+      router.replace("/");
+    }
+  }, [user, router]);
 
   const handleChange = ({ target }) => {
     setValues((current) => ({ ...current, [target.name]: target.value }));

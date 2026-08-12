@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { LogOut, Package, ReceiptText } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,6 +23,14 @@ export function AdminPanel() {
   const { user, loading, isAdmin, logout } = useAuth();
   const [tab, setTab] = useState("products");
   const [editing, setEditing] = useState(null);
+  const formRef = useRef(null);
+
+  useEffect(() => {
+    if (!editing) return;
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [editing]);
 
   const {
     products,
@@ -154,7 +162,7 @@ export function AdminPanel() {
 
       {tab === "products" ? (
         <div className="grid items-start gap-8 lg:grid-cols-[400px_minmax(0,1fr)] lg:gap-10">
-          <div className="lg:sticky lg:top-24">
+          <div ref={formRef} className="scroll-mt-24 lg:sticky lg:top-24">
             <ProductForm
               key={editing?.id ?? "new"}
               editing={editing}
