@@ -10,13 +10,25 @@ const EASE = { duration: 0.6, ease: "easeOut" };
 export function Hero() {
   return (
     <section className="relative overflow-hidden px-5 pb-11 pt-14 md:px-10 md:pb-[70px] md:pt-[90px]">
+      <div className="absolute inset-0 z-0" aria-hidden="true">
+        <Image
+          src="/bgimage.jpeg"
+          alt=""
+          fill
+          sizes="100vw"
+          priority
+          className="hero-zoom object-cover saturate-[0.8] contrast-[0.96]"
+        />
+        <div className="absolute inset-0 bg-bg/70" />
+      </div>
+
       <Image
         src={siteConfig.logo.src}
         alt=""
         aria-hidden="true"
         width={200}
         height={280}
-        className="pointer-events-none absolute right-[6%] bottom-0 z-0 h-[130px] w-auto max-w-[40%] opacity-50 sm:h-[170px] sm:top-5 md:h-[240px] md:top-8 lg:h-[340px] lg:top-10"
+        className="pointer-events-none absolute right-[6%] bottom-0 z-[2] h-[130px] w-auto max-w-[40%] opacity-50 sm:h-[170px] sm:top-5 md:h-[240px] md:top-8 lg:h-[340px] lg:top-10"
       />
 
       <div className="relative z-10 mx-auto max-w-[1180px]">

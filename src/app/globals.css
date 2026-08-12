@@ -38,6 +38,51 @@
   }
 }
 
+@keyframes hero-zoom {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.14);
+  }
+}
+
+@media (min-width: 48rem) {
+  @keyframes hero-zoom {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.24);
+    }
+  }
+}
+
+@media (min-width: 64rem) {
+  @keyframes hero-zoom {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.34);
+    }
+  }
+}
+
+.hero-zoom {
+  animation: hero-zoom 18s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-zoom {
+    animation: none;
+  }
+}
+
 html {
   width: 100%;
   margin: 0;
