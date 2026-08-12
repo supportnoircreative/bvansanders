@@ -63,6 +63,10 @@ export const metadata = {
     icon: siteConfig.logo.src,
   },
 
+   verification: {
+    google: "4E2mbQIrIfVgZKuGaaOY2vZ-6WBGudlJg46uhCzI_AI"
+  },
+
   manifest: "/manifest.webmanifest",
 
   openGraph: {
@@ -98,7 +102,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={cn("h-full", inter.variable, archivoBlack.variable, plexMono.variable, "font-sans", geist.variable)}
+      className={cn("h-full", inter.variable, archivoBlack.variable, plexMono.variable, "font-sans", geist.variable)}     
     >
       <body className="flex min-h-screen flex-col">
         <AuthProvider>
