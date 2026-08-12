@@ -23,6 +23,7 @@ export function AdminPanel() {
   const { user, loading, isAdmin, logout } = useAuth();
   const [tab, setTab] = useState("products");
   const [editing, setEditing] = useState(null);
+  const [formKey, setFormKey] = useState(0);
   const formRef = useRef(null);
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export function AdminPanel() {
 
   const handleSaved = useCallback(() => {
     setEditing(null);
+    setFormKey((current) => current + 1);
     refreshProducts();
   }, [refreshProducts]);
 
@@ -164,7 +166,7 @@ export function AdminPanel() {
         <div className="grid items-start gap-8 lg:grid-cols-[400px_minmax(0,1fr)] lg:gap-10">
           <div ref={formRef} className="scroll-mt-24 lg:sticky lg:top-24">
             <ProductForm
-              key={editing?.id ?? "new"}
+              key={`${editing?.id ?? "new"}-${formKey}`}
               editing={editing}
               onSaved={handleSaved}
               onCancelEdit={() => setEditing(null)}
