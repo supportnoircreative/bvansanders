@@ -5,9 +5,9 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { seoConfig, absoluteUrl } from "@/config/seo";
 
 export const metadata = {
-  title: "Giclée Art Prints",
+  title: "Fine Art Prints",
   description:
-    "Shop museum-quality giclée art prints by B. Van Sanders. Archival, hand-signed and numbered limited editions on heavyweight cotton paper.",
+    "Museum-quality fine art prints on gloss cover stock and issued in limited, hand signed editions.",
   keywords: [
     "giclée art prints",
     "giclée prints for sale",
@@ -21,9 +21,9 @@ export const metadata = {
     canonical: "/prints",
   },
   openGraph: {
-    title: "Giclée Art Prints | B. Van Sanders",
+    title: "Fine Art Prints | B. Van Sanders",
     description:
-      "Museum-quality giclée art prints by B. Van Sanders — archival, hand-signed and numbered limited editions on heavyweight cotton paper.",
+      "Museum-quality fine art prints on gloss cover stock and issued in limited, hand signed editions.",
     type: "website",
     url: absoluteUrl("/prints"),
     siteName: seoConfig.og.siteName,
@@ -37,9 +37,9 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Giclée Art Prints | B. Van Sanders",
+    title: "Fine Art Prints | B. Van Sanders",
     description:
-      "Museum-quality giclée art prints by B. Van Sanders — archival, hand-signed and numbered limited editions.",
+      "Museum-quality fine art prints on gloss cover stock and issued in limited, hand signed editions.",
     images: [absoluteUrl(seoConfig.og.defaultImage)],
   },
 };
@@ -48,19 +48,19 @@ export default function PrintsPage() {
   return (
     <Container>
       <div className="pt-11 md:pt-[70px]">
-        <Eyebrow>Signed & numbered</Eyebrow>
+        <Eyebrow>Signed</Eyebrow>
         <h1 className="font-display mb-4 text-[clamp(30px,4.5vw,44px)] uppercase leading-none">
-          Giclée Art Prints
+          Fine Art Prints
         </h1>
         <p className="mb-0 max-w-[540px] text-[15px] leading-relaxed text-ink-soft">
-          Museum-quality giclée prints on archival cotton paper, color-matched
-          in the studio and issued in limited, hand-signed editions.
+          Museum-quality fine art prints on gloss cover stock and issued in
+          limited, hand signed editions.
         </p>
       </div>
       <Section>
         <CatalogView
           kind="print"
-          title="Available prints"
+          title="Available fine art prints"
         />
       </Section>
     </Container>

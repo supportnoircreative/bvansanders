@@ -1,11 +1,11 @@
 export const MEDIUM_BY_KIND = {
-  print: "Giclée on cotton paper",
+  print: "Giclée on gloss cover stock",
   original: "Acrylic on canvas",
   gallery: "Acrylic on canvas",
 };
 
 export const EDITION_BY_KIND = {
-  print: "Signed & numbered",
+  print: "Signed",
   original: "One of one",
   gallery: "One of one",
 };
